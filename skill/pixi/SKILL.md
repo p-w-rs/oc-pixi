@@ -7,7 +7,8 @@ description: Use Pixi (pixi.sh) for every environment — standalone scripts wit
 
 Pixi gives every script and project its own locked, reproducible environment from conda-forge (and PyPI), without
 touching the system. One tool replaces `pip`, `venv`, `uv`, `poetry`, `conda`/`mamba`, `pyenv` and most
-Homebrew/apt installs of compilers and runtimes. The full official documentation is bundled: `pixi_docs query=…`.
+Homebrew/apt installs of compilers and runtimes. Written for Pixi 0.81 (`pixi --version`); the full official
+documentation for it is bundled: `pixi_docs query=…`. When this skill and the docs disagree, the docs win.
 
 ## Decide first: which of three cases?
 
@@ -25,8 +26,10 @@ If the folder already has `pixi.toml` / `[tool.pixi]`: it is a workspace; use it
 - Never run `python`, `pip`, `uv`, `conda`, `python -m venv` or `poetry` directly; never `pixi run pip install`
   (bypasses the lock). Declare everything with `pixi add` so it is in the manifest and `pixi.lock`.
 - Prefer conda-forge packages (`pixi add numpy`); use `--pypi` only for packages that are only on PyPI.
-- Commit `pixi.toml`/`pyproject.toml` **and** `pixi.lock`; put `.pixi/` in `.gitignore` (`pixi init` does it).
-- Reproduce exactly with `pixi run --locked …` (fails instead of re-solving) — always in CI.
+- Commit `pixi.toml`/`pyproject.toml` **and** `pixi.lock`; `.pixi/` stays out of git (`pixi init` writes
+  `.gitignore` and `.gitattributes` for that).
+- Reproduce exactly with `--locked` (fails if the lock is stale) or `--frozen` (uses the lock as is, never
+  re-solves) — always one of them in CI and Docker.
 - Existing projects on another tool (uv, poetry, requirements.txt, conda): don't convert unless the user asks;
   run them as documented, or with `pixi exec`. New scripts you write still use Pixi.
 - Never install anything globally (`pixi global install`) unless the user asks.
@@ -37,30 +40,35 @@ Python (PEP 723 metadata, written by Pixi):
 
 ```sh
 pixi init --script analyze.py              # adds the metadata block (works on an existing file too)
-pixi add --script analyze.py pandas matplotlib   # conda-forge
+pixi add --script analyze.py pandas matplotlib   # conda-forge  (pixi remove --script … to drop)
 pixi add --script analyze.py --pypi rich   # PyPI
 pixi run --script analyze.py data.csv      # solves once, caches the environment, runs
 ```
 
 ```python
 # /// script
-# requires-python = ">=3.12"
+# requires-python = ">=3.11"
 # dependencies = ["rich"]                  # PyPI
 #
-# [tool.pixi.workspace]
-# channels = ["conda-forge"]
-#
 # [tool.pixi.dependencies]
-# pandas = "*"                             # conda-forge
+# pandas = "*"                             # conda-forge (the default channel)
 # ///
 ```
+`pixi init --script f.py -c <channel>` adds a `[tool.pixi.workspace] channels = […]` table for other channels.
 
 - Executable: first line `#!/usr/bin/env -S pixi run --script`, then `chmod +x analyze.py`; `./analyze.py` works.
-- `pixi lock --script f.py` writes `f.py.pixi.lock` next to it for exact reproducibility (optional).
-- A script that `uv run` could run already has PEP 723 metadata: `pixi run --script` runs it as-is.
+- `pixi lock --script f.py` writes `f.py.pixi.lock` next to it; later runs use it (`--locked`/`--frozen` work).
+  To lock for other OSes too: `pixi workspace platform add --script f.py linux-64 osx-arm64` first.
+- `pixi update --script f.py` refreshes versions (runs otherwise reuse the cached resolution);
+  `pixi install --script f.py` installs without running (container builds, before going offline);
+  `pixi tree --script f.py` shows why a package is there.
+- A script that `uv run` could run already has PEP 723 metadata: `pixi run --script` runs it as-is (also from a
+  URL or `-` for stdin; remote scripts execute with your permissions, so read them first).
+- Arguments starting with `-` go after `--`: `pixi run --script f.py -- --verbose`.
 
-Other languages, in one file (**conda-script**, experimental: pass `--experimental` or set
-`pixi config set experimental.conda-script true --global` once). The block uses the file's comment syntax:
+Other languages, in one file (**conda-script**, experimental: pass `--experimental` to `pixi run` or set
+`pixi config set experimental.conda-script true --global` once). `pixi init --script main.R` (or `.cpp`, `.c`,
+`.sh`, `.f90`, …) writes a starter block from the extension; the block uses the file's line-comment syntax:
 
 ```r
 # /// conda-script
@@ -84,9 +92,12 @@ Other languages, in one file (**conda-script**, experimental: pass `--experiment
 // /// end-conda-script
 ```
 
-Run with `pixi run --experimental --script main.R`. `${SCRIPT}` is the file, `${CACHE}` a per-script build folder.
-Shell scripts: `entrypoint = "bash ${SCRIPT}"` with the tools they need (`jq`, `ffmpeg`, `gdal`) as dependencies.
-More languages (C, Rust, Julia, Node): `pixi_docs page=tutorials/conda_script.md`.
+Run with `pixi run --experimental --script main.R`. `${SCRIPT}` is the file, `${CACHE}` a persistent per-script
+build folder. The entrypoint runs in Pixi's own small shell: `&&`, quotes, `${VAR}` and `$(cmd)` work; pipes,
+redirects, `;`, `||` and globs do not (put those in the script). Shell scripts: `pixi init --script` defaults to
+the `brush` shell; for bash use `entrypoint = "bash ${SCRIPT}"` with `bash` and the tools it needs (`jq`, `ffmpeg`,
+`gdal`) as dependencies. `pixi add --script main.R r-ggplot2` edits the block. More languages (C, Fortran, Mojo,
+C#, Kotlin, TypeScript/Deno): `pixi_docs page=tutorials/conda_script.md`.
 
 ## 2. One-off commands
 
@@ -94,6 +105,7 @@ More languages (C, Rust, Julia, Node): `pixi_docs page=tutorials/conda_script.md
 pixi exec --spec python=3.12 --spec numpy python -c "import numpy; print(numpy.__version__)"
 pixi exec ruff check .                     # the package has the command's name
 pixi exec --spec gdal ogrinfo --version    # name a different package with --spec
+pixi exec --with pytest-cov pytest         # guessed package (pytest) plus extras
 pixi exec --spec nodejs=24 node -e "console.log(1)"
 ```
 
@@ -103,13 +115,14 @@ pixi exec --spec nodejs=24 node -e "console.log(1)"
 pixi init                                  # pixi.toml here; `pixi init --format pyproject` for Python packages
 pixi add python=3.12 numpy pandas          # conda-forge, versions pinned in pixi.lock
 pixi add --pypi some-package               # PyPI only
-pixi task add test "pytest -q"             # then: pixi run test
+pixi add -f dev pytest ruff                # into feature `dev`;  -e test pytest → inline on environment `test`
+pixi task add test "pytest -q" --depends-on build   # then: pixi run test
 pixi task add lint "ruff check ." --description "Lint"
 pixi run python main.py                    # any command inside the environment
 pixi run --locked test                     # exact lock (CI)
 pixi list / pixi tree <pkg>                # what is installed / why
-pixi update [pkg]                          # newer versions within the constraints
-pixi upgrade [pkg]                         # bump the constraints themselves
+pixi update [pkg]                          # newer versions within the constraints (lock only)
+pixi upgrade [pkg]                         # bump the constraints in the manifest too
 pixi workspace platform add linux-64 osx-arm64 linux-aarch64   # lock for every OS the team uses
 ```
 
@@ -126,26 +139,25 @@ python = "3.12.*"
 numpy = ">=2"
 
 [pypi-dependencies]
-proj = { path = ".", editable = true }     # the project's own package
+proj = { path = ".", editable = true }     # the project's own package (needs [build-system] in pyproject.toml)
 
 [tasks]
 build = "cmake --build build"
 test = { cmd = "pytest -q", depends-on = ["build"] }
 serve = { cmd = "python -m http.server $PORT", env = { PORT = "8000" } }
 
-[feature.dev.dependencies]
+[environments.dev.dependencies]            # deps that belong to one environment: define them on it directly
 pytest = "*"
 ruff = "*"
-
-[environments]
-default = ["dev"]
 ```
 
-Several environments (CPU/GPU, Python versions, docs): put dependencies under `[feature.<name>.dependencies]`,
-list `[environments] <env> = ["<feature>", …]`, run with `pixi run -e <env> …`. A feature can only narrow what the
-default `[dependencies]` allow, never widen it: for several Python versions keep `python = ">=3.11"` in
-`[dependencies]`, put `python = "3.11.*"` / `"3.12.*"` in features `py311` / `py312`, and use
-`[environments] default = ["py312"]`, `py311 = ["py311"]`; then `pixi run -e py311 test`.
+Run in a named environment with `pixi run -e dev …`. Use **features** only for content shared by several
+environments: `[feature.<name>.dependencies]` plus `[environments] <env> = ["<feature>", …]` (the default
+feature, i.e. top-level `[dependencies]`, is always included unless `no-default-feature = true`). A feature can
+only narrow what the default `[dependencies]` allow, never widen it (specs are combined, conflicts fail the
+solve): for several Python versions keep `python = ">=3.11"` in `[dependencies]`, put `python = "3.11.*"` /
+`"3.12.*"` in features `py311` / `py312`, and use `[environments] default = ["py312"]`, `py311 = ["py311"]`; then
+`pixi run -e py311 test`. Environments that must share versions (prod vs test): same `solve-group`.
 
 ### Non-Python toolchains (all from conda-forge)
 
@@ -159,7 +171,7 @@ default `[dependencies]` allow, never widen it: for several Python versions keep
 | Julia | `julia` | packages via Julia's own Pkg |
 | Java / Kotlin | `openjdk maven` / `gradle` | |
 | Fortran | `fortran-compiler` | |
-| CUDA | `cuda-nvcc cuda-cudart-dev` (or `cuda-toolkit`) | add `[system-requirements] cuda = "12"`; see PyTorch below |
+| CUDA | `cuda-nvcc cuda-cudart-dev` (or `cuda-toolkit`) + `cuda-version = "<major.minor>.*"` | declare CUDA on the platform; see below |
 
 C++ with CMake, as tasks:
 
@@ -180,45 +192,79 @@ Inside `pixi run`, `$CONDA_PREFIX` is the environment, and CMake/pkg-config find
 
 ### PyTorch / CUDA
 
+CUDA availability is declared **on the platform** (`[system-requirements]` is deprecated since the rich-platform
+syntax; still parsed, but don't write it). Without it Pixi solves the CPU-only builds.
+
 ```toml
 [workspace]
 channels = ["conda-forge"]
-platforms = ["linux-64", "osx-arm64"]
-
-[system-requirements]
-cuda = "12"                                # the driver must support this CUDA version
+platforms = [
+  { name = "linux-64-cuda", platform = "linux-64", cuda = "12" },   # listed first: picked when a driver is present
+  { name = "linux-64-cpu", platform = "linux-64" },
+  "osx-arm64",
+]
 
 [dependencies]
 python = "3.12.*"
-pytorch-gpu = "*"                          # linux-64; use `pytorch` on macOS (MPS)
+
+[target.linux-64-cuda.dependencies]
+pytorch-gpu = "*"
+
+[target.linux-64-cpu.dependencies]
+pytorch-cpu = "*"
 
 [target.osx-arm64.dependencies]
-pytorch = "*"
+pytorch = "*"                              # MPS
 ```
 
-CPU and GPU side by side: features `cpu` (`pytorch-cpu`) and `cuda` (`pytorch-gpu` + system-requirements), two
-environments. Details: `pixi_docs page=python/pytorch.md`.
+- `cuda = "12"` must not exceed what the driver supports (`nvidia-smi`). Pin `cuda-version = "12.9.*"` only if
+  you must: an older pin silently selects much older PyTorch builds (check `pixi list pytorch` after locking).
+- One environment, solved per platform; give both linux variants a name (a bare `linux-64` target would match
+  the CUDA platform too). Try a variant: `pixi run --platform linux-64-cpu python -c "import torch"`.
+- CLI: `pixi workspace platform add linux-64-cuda=linux-64 --cuda 12` (a name is required with virtual packages);
+  `pixi workspace platform list` shows what this machine is detected as.
+- Only a GPU environment, separate from the default: `[feature.gpu] platforms = ["linux-64-cuda"]` +
+  `[environments] gpu = ["gpu"]`.
+- Solving/installing on a machine without a GPU (CI): `CONDA_OVERRIDE_CUDA=12.8 pixi install --locked`.
+- PyTorch wheels from download.pytorch.org instead: `torch = { version = "*", index = "https://download.pytorch.org/whl/cu128" }`
+  in `[pypi-dependencies]`, and then torch-dependent packages from PyPI too. Details: `pixi_docs page=python/pytorch.md`.
 
 ## Converting (only when asked)
 
-- `requirements.txt`: `pixi init`, then `pixi add` each package (conda-forge names; `--pypi` for the rest), or
-  `pixi init --format pyproject` if there is a `pyproject.toml` already.
-- `environment.yml`: `pixi init --import environment.yml`.
-- uv / poetry projects: `pixi init --format pyproject` keeps `[project]` dependencies and adds `[tool.pixi]`;
-  see `pixi_docs page=switching_from/uv.md` (or `poetry.md`, `conda.md`).
+- `requirements.txt`: in a workspace, `pixi import --format pypi-txt -f reqs -e default requirements.txt`
+  (as PyPI deps in feature `reqs`, added to the default environment); better: `pixi add` each package from
+  conda-forge where it exists, `--pypi` for the rest.
+- `environment.yml`: `pixi init --import environment.yml` (its `pip:` section becomes `[pypi-dependencies]`).
+- uv / poetry projects: `pixi init --format pyproject` in the project keeps `[project]` dependencies, adds
+  `[tool.pixi]` and turns dependency groups/extras into environments (`pixi run -e dev pytest`); see
+  `pixi_docs page=switching_from/uv.md` (or `poetry.md`, `conda.md`).
 - Replace `pip install -r … && python app.py` instructions with tasks (`pixi run start`).
 
 ## CI and Docker
 
-- GitHub Actions: `prefix-dev/setup-pixi@v0` (with `cache: true`), then `pixi run --locked test`.
-- Docker: base image `ghcr.io/prefix-dev/pixi`, `pixi install --locked` in a build stage, copy `.pixi/envs/default`
-  into the runtime image. See `pixi_docs page=deployment/container.md`.
+- GitHub Actions: pin the action and Pixi exactly (both are pre-1.0; let Dependabot bump them):
+  ```yaml
+  - uses: prefix-dev/setup-pixi@v0.11.3      # check github.com/prefix-dev/setup-pixi/releases for the latest
+    with:
+      pixi-version: v0.81.0
+      cache: true
+      environments: default                  # several: "py311 py312"
+  - run: pixi run --locked test
+  ```
+  The action runs `pixi install --locked` when `pixi.lock` exists.
+- Docker: build stage `FROM ghcr.io/prefix-dev/pixi:0.81.0` (tags also `noble-cuda-13.0.0` etc.), then
+  `pixi install --locked -e prod` and `pixi shell-hook -e prod -s bash > /shell-hook` turned into an entrypoint
+  script; copy `/app/.pixi/envs/prod` to the **same path** in a plain runtime image (the prefix must not move).
+  Full Dockerfile: `pixi_docs page=deployment/container.md`. Offline/air-gapped targets: `pixi-pack`
+  (`pixi_docs page=deployment/pixi_pack.md`).
 
 ## Troubleshooting
 
 - "lock file not up to date": `pixi install` (or `pixi lock`) and commit `pixi.lock`; `--locked` failed on purpose.
 - Package not found: `pixi search <name>`; not on conda-forge → `pixi add --pypi <name>`.
 - "unsupported platform" in the lock: `pixi workspace platform add <platform>`.
+- Solve conflict in an environment: a feature (or `-e` content) asks for something the default `[dependencies]`
+  exclude; loosen the default spec. `pixi tree -e <env> <pkg>` shows who wants what.
 - A conda and a PyPI package clash: prefer the conda one; avoid installing the same library from both.
 - Activation for a shell session: `eval "$(pixi shell-hook)"` (scripts/CI) or `pixi shell` (interactive).
 - Disk: `pixi clean` (this workspace's environments), `pixi clean cache` (download cache).
