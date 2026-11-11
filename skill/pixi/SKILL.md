@@ -218,7 +218,13 @@ pytorch = "*"                              # MPS
 ```
 
 - `cuda = "12"` must not exceed what the driver supports (`nvidia-smi`). Pin `cuda-version = "12.9.*"` only if
-  you must: an older pin silently selects much older PyTorch builds (check `pixi list pytorch` after locking).
+  you must: an older pin silently selects much older PyTorch builds (check `pixi list pytorch` after locking;
+  Nov 2026, driver 13.0: unpinned → 2.14.1 `cuda134`, `cuda-version = "13.0.*"` → 2.13.0 `cuda130`). Builds for a
+  newer CUDA minor than the driver run, but PTX-JIT code may fail ("unsupported toolchain"). Blackwell sm_120 is included.
+- `pixi add cuda-cudart-dev` writes the newest pin (`>=13.5.37,<14`), which conflicts with a feature that pins an
+  older `cuda-version`; write `"*"` for CUDA packages and let `cuda-version` choose.
+- `torch.compile` on the GPU also needs `cuda-cudart-dev` (Triton builds a helper against `cuda.h`) and a C compiler
+  (system `gcc` or `c-compiler`); without it compile fails with `cuda.h: No such file or directory`.
 - One environment, solved per platform; give both linux variants a name (a bare `linux-64` target would match
   the CUDA platform too). Try a variant: `pixi run --platform linux-64-cpu python -c "import torch"`.
 - CLI: `pixi workspace platform add linux-64-cuda=linux-64 --cuda 12` (a name is required with virtual packages);
