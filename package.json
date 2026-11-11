@@ -1,0 +1,59 @@
+{
+  "name": "oc-pixi",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "description": "Pixi for OpenCode agents: environments for scripts and projects in any language, hints when agents bypass Pixi, and the full Pixi documentation bundled",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/p-w-rs/oc-pixi.git"
+  },
+  "homepage": "https://github.com/p-w-rs/oc-pixi#readme",
+  "bugs": {
+    "url": "https://github.com/p-w-rs/oc-pixi/issues"
+  },
+  "exports": {
+    ".": "./plugin/index.ts",
+    "./gui-experimental": "./dist/gui-experimental.cjs"
+  },
+  "files": [
+    "plugin/*.ts",
+    "plugin/*.tsx",
+    "!plugin/*.test.ts",
+    "dist/gui-experimental.cjs",
+    "scripts/*.mjs",
+    "skill",
+    "docs",
+    "README.md",
+    "pixi.toml",
+    "pixi.lock",
+    "npm-shrinkwrap.json",
+    "tsconfig.json",
+    "vite.config.ts"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --import tsx --test plugin/*.test.ts scripts/*.test.ts",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "jsonc-parser": "3.3.1"
+  },
+  "devDependencies": {
+    "@opencode/plugin": "2.2.6",
+    "@types/node": "24.10.0",
+    "solid-js": "1.9.18",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vite": "8.3.6",
+    "vite-plugin-solid": "2.11.15"
+  }
+}

@@ -1,0 +1,113 @@
+# [pixi](index.md) install
+
+Install an environment, both updating the lock file and installing the environment
+
+## Usage
+```
+pixi install [OPTIONS]
+```
+
+## Options
+- <a id="arg---environment" href="#arg---environment">`--environment (-e) <ENVIRONMENT>`</a>
+:  The environment to install
+
+- <a id="arg---all" href="#arg---all">`--all (-a)`</a>
+:  Install all environments
+- <a id="arg---platform" href="#arg---platform">`--platform (-p) <PLATFORM>`</a>
+:  Install for the given platform; a warning is printed when it doesn't run on this machine
+- <a id="arg---skip" href="#arg---skip">`--skip <SKIP>`</a>
+:  Skip installation of specific packages present in the lock file. This uses a soft exclusion: the package will be skipped but its dependencies are installed
+
+- <a id="arg---skip-with-deps" href="#arg---skip-with-deps">`--skip-with-deps <SKIP_WITH_DEPS>`</a>
+:  Skip a package and its entire dependency subtree. This performs a hard exclusion: the package and its dependencies are not installed unless reachable from another non-skipped root
+
+- <a id="arg---only" href="#arg---only">`--only <ONLY>`</a>
+:  Install and build only these package(s) and their dependencies. Can be passed multiple times
+
+## Config Options
+- <a id="arg---no-config" href="#arg---no-config">`--no-config`</a>
+:  Don't read system or user-level configuration files. Project-local `<project>/.pixi/config.toml` is still loaded
+
+- <a id="arg---config-file" href="#arg---config-file">`--config-file <PATH>`</a>
+:  Load configuration from this file instead of searching system and user-level paths. Project-local `<project>/.pixi/config.toml` is still merged on top
+
+- <a id="arg---auth-file" href="#arg---auth-file">`--auth-file <AUTH_FILE>`</a>
+:  Path to the file containing the authentication token
+- <a id="arg---concurrent-downloads" href="#arg---concurrent-downloads">`--concurrent-downloads <CONCURRENT_DOWNLOADS>`</a>
+:  Max concurrent network requests, default is `50`
+- <a id="arg---concurrent-solves" href="#arg---concurrent-solves">`--concurrent-solves <CONCURRENT_SOLVES>`</a>
+:  Max concurrent solves, default is the number of CPUs
+- <a id="arg---pinning-strategy" href="#arg---pinning-strategy">`--pinning-strategy <PINNING_STRATEGY>`</a>
+:  Set pinning strategy
+
+- <a id="arg---pypi-keyring-provider" href="#arg---pypi-keyring-provider">`--pypi-keyring-provider <PYPI_KEYRING_PROVIDER>`</a>
+:  Specifies whether to use the keyring to look up credentials for PyPI
+
+- <a id="arg---run-post-link-scripts" href="#arg---run-post-link-scripts">`--run-post-link-scripts`</a>
+:  Run post-link scripts (insecure)
+- <a id="arg---no-symbolic-links" href="#arg---no-symbolic-links">`--no-symbolic-links`</a>
+:  Disallow symbolic links during package installation
+
+- <a id="arg---no-hard-links" href="#arg---no-hard-links">`--no-hard-links`</a>
+:  Disallow hard links during package installation
+
+- <a id="arg---no-ref-links" href="#arg---no-ref-links">`--no-ref-links`</a>
+:  Disallow ref links (copy-on-write) during package installation
+
+- <a id="arg---tls-no-verify" href="#arg---tls-no-verify">`--tls-no-verify`</a>
+:  Do not verify the TLS certificate of the server
+- <a id="arg---offline" href="#arg---offline">`--offline=<OFFLINE>`</a>
+:  Run without network access, using only cached data. Commands fail if data is missing from the cache. Pass `--offline=false` to override an `offline` setting from the configuration
+
+- <a id="arg---tls-root-certs" href="#arg---tls-root-certs">`--tls-root-certs <TLS_ROOT_CERTS>`</a>
+:  Which TLS root certificates to use: 'webpki' (bundled Mozilla roots) or 'system' (system store)
+
+- <a id="arg---use-environment-activation-cache" href="#arg---use-environment-activation-cache">`--use-environment-activation-cache`</a>
+:  Use environment activation cache (experimental)
+
+## Update Options
+- <a id="arg---frozen" href="#arg---frozen">`--frozen`</a>
+:  Install the environment as defined in the lock file, doesn't update lock file if it isn't up-to-date with the manifest file
+
+- <a id="arg---locked" href="#arg---locked">`--locked`</a>
+:  Check if lock file is up-to-date before installing the environment, aborts when lock file isn't up-to-date with the manifest file
+
+## Global Options
+- <a id="arg---manifest-path" href="#arg---manifest-path">`--manifest-path (-m) <MANIFEST_PATH>`</a>
+:  The path to `pixi.toml`, `pyproject.toml`, or the workspace directory
+- <a id="arg---workspace" href="#arg---workspace">`--workspace (-w) <WORKSPACE>`</a>
+:  Name of the workspace
+- <a id="arg---script" href="#arg---script">`--script (-s) <SCRIPT>`</a>
+:  The path to a script with an embedded manifest: a Python script containing PEP 723 metadata, or a file of any language containing a `/// conda-script` block
+
+## Description
+Install an environment, both updating the lock file and installing the environment.
+
+This command installs an environment, if the lock file is not up-to-date it will be updated.
+
+`pixi install` only installs one environment at a time, if you have multiple environments you can select the right one with the `--environment` flag. If you don't provide an environment, the `default` environment will be installed.
+
+If you want to install all environments, you can use the `--all` flag.
+
+Running `pixi install` is not required before running other commands like `pixi run` or `pixi shell`. These commands will automatically install the environment if it is not already installed.
+
+You can use `pixi reinstall` to reinstall all environments, one environment or just some packages of an environment.
+
+`pixi install --script` installs a PEP 723 script's environment without running the script. It uses the same environment as `pixi run --script`. Pixi updates an adjacent lock file when one exists. Otherwise, it updates the cached resolution.
+
+## Examples
+
+```shell
+pixi install  # (1)!
+pixi install --manifest-path ~/myworkspace/pixi.toml # (2)!
+pixi install --frozen # (3)!
+pixi install --locked # (4)!
+pixi install --environment lint # (5)!
+pixi install -e lint # (5)!
+```
+
+1. This will install the default environment.
+2. This will install the default environment from the manifest file at the given path.
+3. This will install the environment from the lock file without updating the lock file.
+4. This will install the environment from the lock file without updating the lock file and ensuring the environment is locked correctly.
+5. This will install the `lint` environment.

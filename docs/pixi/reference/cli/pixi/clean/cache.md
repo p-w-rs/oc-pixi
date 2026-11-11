@@ -1,0 +1,45 @@
+# [pixi](../index.md) [clean](index.md) cache
+
+Clean the cache of your system which are touched by pixi
+
+## Usage
+```
+pixi clean cache [OPTIONS]
+```
+
+## Options
+- <a id="arg---pypi" href="#arg---pypi">`--pypi`</a>
+:  Clean only the pypi related cache
+- <a id="arg---conda" href="#arg---conda">`--conda`</a>
+:  Clean only the conda related cache
+- <a id="arg---mapping" href="#arg---mapping">`--mapping`</a>
+:  Clean only the mapping cache
+- <a id="arg---exec" href="#arg---exec">`--exec`</a>
+:  Clean only `exec` cache
+- <a id="arg---repodata" href="#arg---repodata">`--repodata`</a>
+:  Clean only the repodata cache
+- <a id="arg---notices" href="#arg---notices">`--notices`</a>
+:  Clean only the viewed channel notices cache
+- <a id="arg---build-backends" href="#arg---build-backends">`--build-backends`</a>
+:  Clean only the build backends environments cache
+- <a id="arg---build" href="#arg---build">`--build`</a>
+:  Clean only the build related cache
+- <a id="arg---yes" href="#arg---yes">`--yes (-y)`</a>
+:  Answer yes to all questions
+
+## Description
+Clean the cache of your system which are touched by pixi.
+
+Specify the cache type to clean with the flags.
+
+## Examples
+
+```shell
+pixi clean cache # clean all pixi caches
+pixi clean cache --pypi # clean only the pypi cache
+pixi clean cache --conda # clean only the conda cache
+pixi clean cache --mapping # clean only the mapping cache
+pixi clean cache --exec # clean only the `exec` cache
+pixi clean cache --repodata # clean only the `repodata` cache
+pixi clean cache --yes # skip the confirmation prompt
+```

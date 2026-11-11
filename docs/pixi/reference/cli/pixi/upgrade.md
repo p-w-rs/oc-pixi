@@ -1,0 +1,124 @@
+# [pixi](index.md) upgrade
+
+Checks if there are newer versions of the dependencies and upgrades them in the lock file and manifest file
+
+!!! note
+    The `pixi upgrade` command will update only `version`s, except when you specify the exact package name (`pixi upgrade numpy`).
+
+    Then it will remove all fields, apart from:
+
+    - `build` field containing a wildcard `*`
+    - `channel`
+    - `file_name`
+    - `url`
+    - `subdir`.
+
+!!! note
+    In v0.55.0 and earlier releases, by default only the `default` feature was upgraded.
+    Pass `--feature=default` if you want to emulate this behaviour on newer releases.
+
+## Usage
+```
+pixi upgrade [OPTIONS] [PACKAGES]...
+```
+
+## Arguments
+- <a id="arg-PACKAGES" href="#arg-PACKAGES">`<PACKAGES>`</a>
+:  The packages to upgrade
+
+## Options
+- <a id="arg---feature" href="#arg---feature">`--feature (-f) <FEATURE>`</a>
+:  The feature to update
+- <a id="arg---environment" href="#arg---environment">`--environment (-e) <ENVIRONMENT>`</a>
+:  The environment whose inline dependencies should be updated
+- <a id="arg---exclude" href="#arg---exclude">`--exclude <EXCLUDE>`</a>
+:  The packages which should be excluded
+
+- <a id="arg---json" href="#arg---json">`--json`</a>
+:  Output the changes in JSON format
+- <a id="arg---dry-run" href="#arg---dry-run">`--dry-run (-n)`</a>
+:  Only show the changes that would be made, without actually updating the manifest, lock file, or environment
+
+## Config Options
+- <a id="arg---no-config" href="#arg---no-config">`--no-config`</a>
+:  Don't read system or user-level configuration files. Project-local `<project>/.pixi/config.toml` is still loaded
+
+- <a id="arg---config-file" href="#arg---config-file">`--config-file <PATH>`</a>
+:  Load configuration from this file instead of searching system and user-level paths. Project-local `<project>/.pixi/config.toml` is still merged on top
+
+- <a id="arg---auth-file" href="#arg---auth-file">`--auth-file <AUTH_FILE>`</a>
+:  Path to the file containing the authentication token
+- <a id="arg---concurrent-downloads" href="#arg---concurrent-downloads">`--concurrent-downloads <CONCURRENT_DOWNLOADS>`</a>
+:  Max concurrent network requests, default is `50`
+- <a id="arg---concurrent-solves" href="#arg---concurrent-solves">`--concurrent-solves <CONCURRENT_SOLVES>`</a>
+:  Max concurrent solves, default is the number of CPUs
+- <a id="arg---pinning-strategy" href="#arg---pinning-strategy">`--pinning-strategy <PINNING_STRATEGY>`</a>
+:  Set pinning strategy
+
+- <a id="arg---pypi-keyring-provider" href="#arg---pypi-keyring-provider">`--pypi-keyring-provider <PYPI_KEYRING_PROVIDER>`</a>
+:  Specifies whether to use the keyring to look up credentials for PyPI
+
+- <a id="arg---run-post-link-scripts" href="#arg---run-post-link-scripts">`--run-post-link-scripts`</a>
+:  Run post-link scripts (insecure)
+- <a id="arg---no-symbolic-links" href="#arg---no-symbolic-links">`--no-symbolic-links`</a>
+:  Disallow symbolic links during package installation
+
+- <a id="arg---no-hard-links" href="#arg---no-hard-links">`--no-hard-links`</a>
+:  Disallow hard links during package installation
+
+- <a id="arg---no-ref-links" href="#arg---no-ref-links">`--no-ref-links`</a>
+:  Disallow ref links (copy-on-write) during package installation
+
+- <a id="arg---tls-no-verify" href="#arg---tls-no-verify">`--tls-no-verify`</a>
+:  Do not verify the TLS certificate of the server
+- <a id="arg---offline" href="#arg---offline">`--offline=<OFFLINE>`</a>
+:  Run without network access, using only cached data. Commands fail if data is missing from the cache. Pass `--offline=false` to override an `offline` setting from the configuration
+
+- <a id="arg---tls-root-certs" href="#arg---tls-root-certs">`--tls-root-certs <TLS_ROOT_CERTS>`</a>
+:  Which TLS root certificates to use: 'webpki' (bundled Mozilla roots) or 'system' (system store)
+
+- <a id="arg---use-environment-activation-cache" href="#arg---use-environment-activation-cache">`--use-environment-activation-cache`</a>
+:  Use environment activation cache (experimental)
+
+## Update Options
+- <a id="arg---no-install" href="#arg---no-install">`--no-install`</a>
+:  Don't modify the environment, only modify the lock file
+
+- <a id="arg---frozen" href="#arg---frozen">`--frozen`</a>
+:  Install the environment as defined in the lock file, doesn't update lock file if it isn't up-to-date with the manifest file
+
+- <a id="arg---locked" href="#arg---locked">`--locked`</a>
+:  Check if lock file is up-to-date before installing the environment, aborts when lock file isn't up-to-date with the manifest file
+
+## Global Options
+- <a id="arg---manifest-path" href="#arg---manifest-path">`--manifest-path (-m) <MANIFEST_PATH>`</a>
+:  The path to `pixi.toml`, `pyproject.toml`, or the workspace directory
+- <a id="arg---workspace" href="#arg---workspace">`--workspace (-w) <WORKSPACE>`</a>
+:  Name of the workspace
+
+## Description
+Checks if there are newer versions of the dependencies and upgrades them in the lock file and manifest file.
+
+`pixi upgrade` loosens the requirements for the given packages, updates the lock file and the adapts the manifest accordingly. By default, all features are upgraded.
+
+## Examples
+
+```shell
+pixi upgrade # (1)!
+pixi upgrade numpy # (2)!
+pixi upgrade numpy pandas # (3)!
+pixi upgrade --manifest-path ~/myworkspace/pixi.toml numpy # (4)!
+pixi upgrade --feature lint python # (5)!
+pixi upgrade --environment dev # (6)!
+pixi upgrade --json # (7)!
+pixi upgrade --dry-run # (8)!
+```
+
+1. This will upgrade all packages to the latest version.
+2. This will upgrade the `numpy` package to the latest version.
+3. This will upgrade the `numpy` and `pandas` packages to the latest version.
+4. This will upgrade the `numpy` package to the latest version in the manifest file at the given path.
+5. This will upgrade the `python` package in the `lint` feature.
+6. This will upgrade the dependencies defined inline on the environment `dev`.
+7. This will upgrade all packages and output the result in JSON format.
+8. This will show the packages that would be upgraded without actually upgrading them in the lock file or manifest.

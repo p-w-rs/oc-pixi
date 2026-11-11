@@ -1,0 +1,20 @@
+# [pixi](../../../index.md) [workspace](../../index.md) [activation](../index.md) [env](index.md) remove
+
+Remove activation environment variable(s) by name
+
+## Usage
+```
+pixi workspace activation env remove [OPTIONS] <KEY>...
+```
+
+## Arguments
+- <a id="arg-KEY" href="#arg-KEY">`<KEY>`</a>
+:  The name(s) of the environment variable(s) to remove
+
+## Options
+- <a id="arg---feature" href="#arg---feature">`--feature (-f) <FEATURE>`</a>
+:  The name of the feature to modify
+- <a id="arg---environment" href="#arg---environment">`--environment (-e) <ENVIRONMENT>`</a>
+:  The environment to modify. The activation is written to the content defined inline on the environment
+- <a id="arg---target" href="#arg---target">`--target (-t) <TARGET>`</a>
+:  The target selector to modify, e.g. `linux-64`, `unix` or a glob like `cuda-*`

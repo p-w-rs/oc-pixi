@@ -1,0 +1,126 @@
+# [pixi](index.md) shell-hook
+
+Print the pixi environment activation script
+
+## Usage
+```
+pixi shell-hook [OPTIONS]
+```
+
+## Options
+- <a id="arg---shell" href="#arg---shell">`--shell (-s) <SHELL>`</a>
+:  Sets the shell, options: [`bash`,  `zsh`,  `xonsh`,  `cmd`, `powershell`,  `fish`,  `nushell`]
+- <a id="arg---environment" href="#arg---environment">`--environment (-e) <ENVIRONMENT>`</a>
+:  The environment to activate in the script
+- <a id="arg---json" href="#arg---json">`--json`</a>
+:  Emit the environment variables set by running the activation as JSON
+
+## Config Options
+- <a id="arg---no-config" href="#arg---no-config">`--no-config`</a>
+:  Don't read system or user-level configuration files. Project-local `<project>/.pixi/config.toml` is still loaded
+
+- <a id="arg---config-file" href="#arg---config-file">`--config-file <PATH>`</a>
+:  Load configuration from this file instead of searching system and user-level paths. Project-local `<project>/.pixi/config.toml` is still merged on top
+
+- <a id="arg---auth-file" href="#arg---auth-file">`--auth-file <AUTH_FILE>`</a>
+:  Path to the file containing the authentication token
+- <a id="arg---concurrent-downloads" href="#arg---concurrent-downloads">`--concurrent-downloads <CONCURRENT_DOWNLOADS>`</a>
+:  Max concurrent network requests, default is `50`
+- <a id="arg---concurrent-solves" href="#arg---concurrent-solves">`--concurrent-solves <CONCURRENT_SOLVES>`</a>
+:  Max concurrent solves, default is the number of CPUs
+- <a id="arg---pinning-strategy" href="#arg---pinning-strategy">`--pinning-strategy <PINNING_STRATEGY>`</a>
+:  Set pinning strategy
+
+- <a id="arg---pypi-keyring-provider" href="#arg---pypi-keyring-provider">`--pypi-keyring-provider <PYPI_KEYRING_PROVIDER>`</a>
+:  Specifies whether to use the keyring to look up credentials for PyPI
+
+- <a id="arg---run-post-link-scripts" href="#arg---run-post-link-scripts">`--run-post-link-scripts`</a>
+:  Run post-link scripts (insecure)
+- <a id="arg---no-symbolic-links" href="#arg---no-symbolic-links">`--no-symbolic-links`</a>
+:  Disallow symbolic links during package installation
+
+- <a id="arg---no-hard-links" href="#arg---no-hard-links">`--no-hard-links`</a>
+:  Disallow hard links during package installation
+
+- <a id="arg---no-ref-links" href="#arg---no-ref-links">`--no-ref-links`</a>
+:  Disallow ref links (copy-on-write) during package installation
+
+- <a id="arg---tls-no-verify" href="#arg---tls-no-verify">`--tls-no-verify`</a>
+:  Do not verify the TLS certificate of the server
+- <a id="arg---offline" href="#arg---offline">`--offline=<OFFLINE>`</a>
+:  Run without network access, using only cached data. Commands fail if data is missing from the cache. Pass `--offline=false` to override an `offline` setting from the configuration
+
+- <a id="arg---tls-root-certs" href="#arg---tls-root-certs">`--tls-root-certs <TLS_ROOT_CERTS>`</a>
+:  Which TLS root certificates to use: 'webpki' (bundled Mozilla roots) or 'system' (system store)
+
+- <a id="arg---use-environment-activation-cache" href="#arg---use-environment-activation-cache">`--use-environment-activation-cache`</a>
+:  Use environment activation cache (experimental)
+- <a id="arg---force-activate" href="#arg---force-activate">`--force-activate`</a>
+:  Do not use the environment activation cache. (default: true except in experimental mode)
+- <a id="arg---no-completions" href="#arg---no-completions">`--no-completions`</a>
+:  Do not source the autocompletion scripts from the environment
+- <a id="arg---change-ps1" href="#arg---change-ps1">`--change-ps1 <CHANGE_PS1>`</a>
+:  Do not change the PS1 variable when starting a prompt
+
+## Update Options
+- <a id="arg---no-install" href="#arg---no-install">`--no-install`</a>
+:  Don't modify the environment, only modify the lock file
+
+- <a id="arg---frozen" href="#arg---frozen">`--frozen`</a>
+:  Install the environment as defined in the lock file, doesn't update lock file if it isn't up-to-date with the manifest file
+
+- <a id="arg---locked" href="#arg---locked">`--locked`</a>
+:  Check if lock file is up-to-date before installing the environment, aborts when lock file isn't up-to-date with the manifest file
+
+- <a id="arg---as-is" href="#arg---as-is">`--as-is`</a>
+:  Shorthand for the combination of --no-install and --frozen
+
+## Global Options
+- <a id="arg---manifest-path" href="#arg---manifest-path">`--manifest-path (-m) <MANIFEST_PATH>`</a>
+:  The path to `pixi.toml`, `pyproject.toml`, or the workspace directory
+- <a id="arg---workspace" href="#arg---workspace">`--workspace (-w) <WORKSPACE>`</a>
+:  Name of the workspace
+
+## Description
+Print the pixi environment activation script.
+
+You can source the script to activate the environment without needing pixi itself.
+
+## Examples
+
+```shell
+pixi shell-hook
+pixi shell-hook --shell bash
+pixi shell-hook --shell zsh
+pixi shell-hook -s powershell
+pixi shell-hook --manifest-path ~/myworkspace/pixi.toml
+pixi shell-hook --frozen
+pixi shell-hook --locked
+pixi shell-hook --environment cuda
+pixi shell-hook --json
+```
+
+Sourcing the script in bash and similar shells:
+
+```shell
+eval "$(pixi shell-hook)"
+```
+
+or in fish shell:
+
+```shell
+pixi shell-hook | source
+```
+
+or in powershell:
+
+```shell
+(pixi shell-hook) | Out-String | Invoke-Expression
+```
+
+Example use-case, when you want to get rid of the `pixi` executable in a Docker container.
+
+```shell
+pixi shell-hook --shell bash > /etc/profile.d/pixi.sh
+rm ~/.pixi/bin/pixi # Now the environment will be activated without the need for the pixi executable.
+```

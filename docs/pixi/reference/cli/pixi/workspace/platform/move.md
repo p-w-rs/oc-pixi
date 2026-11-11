@@ -1,0 +1,24 @@
+# [pixi](../../index.md) [workspace](../index.md) [platform](index.md) move
+
+Reorder a workspace platform, changing its selection priority
+
+## Usage
+```
+pixi workspace platform move [OPTIONS] <--before <PLATFORM>|--after <PLATFORM>|--to-top|--to-bottom> <NAME>
+```
+
+## Arguments
+- <a id="arg-NAME" href="#arg-NAME">`<NAME>`</a>
+:  Name of the platform to move
+
+## Options
+- <a id="arg---before" href="#arg---before">`--before <PLATFORM>`</a>
+:  Move it directly before this platform
+- <a id="arg---after" href="#arg---after">`--after <PLATFORM>`</a>
+:  Move it directly after this platform
+- <a id="arg---to-top" href="#arg---to-top">`--to-top`</a>
+:  Move it to the top of the list (highest selection priority)
+- <a id="arg---to-bottom" href="#arg---to-bottom">`--to-bottom`</a>
+:  Move it to the bottom of the list (lowest selection priority)
+- <a id="arg---no-install" href="#arg---no-install">`--no-install`</a>
+:  Don't update the environment, only refresh the lock-file

@@ -1,0 +1,84 @@
+# [pixi](../index.md) [auth](index.md) login
+
+Store authentication information for a given host
+
+## Usage
+```
+pixi auth login [OPTIONS] <HOST>
+```
+
+## Arguments
+- <a id="arg-HOST" href="#arg-HOST">`<HOST>`</a>
+:  The host to authenticate with (e.g. prefix.dev)
+
+## Options
+- <a id="arg---user-agent" href="#arg---user-agent">`--user-agent <USER_AGENT>`</a>
+:  User-Agent header used for requests
+
+## OAuth/OIDC Authentication
+- <a id="arg---oauth" href="#arg---oauth">`--oauth`</a>
+:  Use OAuth/OIDC authentication
+- <a id="arg---oauth-issuer-url" href="#arg---oauth-issuer-url">`--oauth-issuer-url <OAUTH_ISSUER_URL>`</a>
+:  OIDC issuer URL (defaults to <https://{host>})
+- <a id="arg---oauth-client-id" href="#arg---oauth-client-id">`--oauth-client-id <OAUTH_CLIENT_ID>`</a>
+:  OAuth client ID (defaults to "rattler")
+- <a id="arg---oauth-client-secret" href="#arg---oauth-client-secret">`--oauth-client-secret <OAUTH_CLIENT_SECRET>`</a>
+:  OAuth client secret (for confidential clients)
+- <a id="arg---oauth-flow" href="#arg---oauth-flow">`--oauth-flow <OAUTH_FLOW>`</a>
+:  OAuth flow: device-code (default), auth-code, auto
+
+- <a id="arg---oauth-scope" href="#arg---oauth-scope">`--oauth-scope <OAUTH_SCOPES>`</a>
+:  Additional OAuth scopes to request (repeatable)
+
+- <a id="arg---oauth-redirect-uri" href="#arg---oauth-redirect-uri">`--oauth-redirect-uri <OAUTH_REDIRECT_URI>`</a>
+:  OAuth redirect URI (defaults to a random localhost port). Set this when the OAuth client on the `IdP` side is registered with a specific redirect URI such as `http://127.0.0.1:8000/auth/oidc`
+
+## S3 Authentication
+- <a id="arg---s3-access-key-id" href="#arg---s3-access-key-id">`--s3-access-key-id <S3_ACCESS_KEY_ID>`</a>
+:  The S3 access key ID
+- <a id="arg---s3-secret-access-key" href="#arg---s3-secret-access-key">`--s3-secret-access-key <S3_SECRET_ACCESS_KEY>`</a>
+:  The S3 secret access key
+- <a id="arg---s3-session-token" href="#arg---s3-session-token">`--s3-session-token <S3_SESSION_TOKEN>`</a>
+:  The S3 session token
+
+## Token / Basic Authentication
+- <a id="arg---token" href="#arg---token">`--token <TOKEN>`</a>
+:  The token to use (for authentication with prefix.dev)
+- <a id="arg---username" href="#arg---username">`--username <USERNAME>`</a>
+:  The username to use (for basic HTTP authentication)
+- <a id="arg---password" href="#arg---password">`--password <PASSWORD>`</a>
+:  The password to use (for basic HTTP authentication)
+- <a id="arg---conda-token" href="#arg---conda-token">`--conda-token <CONDA_TOKEN>`</a>
+:  The token to use on anaconda.org / quetz authentication
+
+## Examples
+
+OAuth against prefix.dev
+
+```shell
+pixi auth login prefix.dev
+```
+
+OAuth against a self-hosted OIDC provider:
+
+```shell
+pixi auth login my.private.host \
+    --oauth \
+    --oauth-issuer-url https://idp.example.com \
+    --oauth-client-id my-cli-client
+```
+
+OAuth on a headless machine (no usable browser — uses the device-code flow):
+
+```shell
+pixi auth login prefix.dev --oauth-flow device-code
+```
+
+Manual tokens, basic auth, and S3 credentials:
+
+```shell
+pixi auth login repo.prefix.dev --token pfx_JQEV-m_2bdz-D8NSyRSaAndHANx0qHjq7f2iD
+pixi auth login anaconda.org --conda-token ABCDEFGHIJKLMNOP
+pixi auth login https://myquetz.server --username john --password xxxxxx
+pixi auth login s3://my-bucket --s3-access-key-id $AWS_ACCESS_KEY_ID --s3-secret-access-key $AWS_SECRET_ACCESS_KEY
+```

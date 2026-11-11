@@ -1,0 +1,24 @@
+# [pixi](../index.md) [global](index.md) tree
+
+Show a tree of dependencies for a specific global environment
+
+## Usage
+```
+pixi global tree [OPTIONS] --environment <ENVIRONMENT> [REGEX]
+```
+
+## Arguments
+- <a id="arg-REGEX" href="#arg-REGEX">`<REGEX>`</a>
+:  List only packages matching a regular expression
+
+## Options
+- <a id="arg---environment" href="#arg---environment">`--environment (-e) <ENVIRONMENT>`</a>
+:  The environment to list packages for
+
+- <a id="arg---invert" href="#arg---invert">`--invert (-i)`</a>
+:  Invert tree and show what depends on a given package in the regex argument
+
+## Description
+Show a tree of a global environment dependencies
+
+Dependency names highlighted in green are directly specified in the manifest.

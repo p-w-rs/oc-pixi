@@ -1,0 +1,126 @@
+# [pixi](index.md) remove
+
+Removes dependencies from the workspace
+
+If the project manifest is a `pyproject.toml`, removing a pypi dependency with the `--pypi` flag will remove it from either
+
+- the native pyproject `project.dependencies` array or the native `project.optional-dependencies` table (if a feature is specified)
+- pixi `pypi-dependencies` tables of the default or a named feature (if a feature is specified)
+
+## Usage
+```
+pixi remove [OPTIONS] <SPEC>...
+```
+
+## Arguments
+- <a id="arg-SPEC" href="#arg-SPEC">`<SPEC>`</a>
+:  The dependency as names, conda MatchSpecs or PyPi requirements
+
+## Options
+- <a id="arg---pypi" href="#arg---pypi">`--pypi`</a>
+:  The specified dependencies are pypi dependencies. Conflicts with `host` and `build`
+- <a id="arg---platform" href="#arg---platform">`--platform (-p) <PLATFORM>`</a>
+:  The platform for which the dependency should be modified. Must be the name of a platform already defined in the workspace
+
+- <a id="arg---feature" href="#arg---feature">`--feature (-f) <FEATURE>`</a>
+:  The feature for which the dependency should be modified
+
+- <a id="arg---environment" href="#arg---environment">`--environment (-e) <ENVIRONMENT>`</a>
+:  The environment for which the dependency should be modified. The dependency is written to the content defined inline on the environment, creating the environment if it does not exist
+
+## Config Options
+- <a id="arg---no-config" href="#arg---no-config">`--no-config`</a>
+:  Don't read system or user-level configuration files. Project-local `<project>/.pixi/config.toml` is still loaded
+
+- <a id="arg---config-file" href="#arg---config-file">`--config-file <PATH>`</a>
+:  Load configuration from this file instead of searching system and user-level paths. Project-local `<project>/.pixi/config.toml` is still merged on top
+
+- <a id="arg---auth-file" href="#arg---auth-file">`--auth-file <AUTH_FILE>`</a>
+:  Path to the file containing the authentication token
+- <a id="arg---concurrent-downloads" href="#arg---concurrent-downloads">`--concurrent-downloads <CONCURRENT_DOWNLOADS>`</a>
+:  Max concurrent network requests, default is `50`
+- <a id="arg---concurrent-solves" href="#arg---concurrent-solves">`--concurrent-solves <CONCURRENT_SOLVES>`</a>
+:  Max concurrent solves, default is the number of CPUs
+- <a id="arg---pinning-strategy" href="#arg---pinning-strategy">`--pinning-strategy <PINNING_STRATEGY>`</a>
+:  Set pinning strategy
+
+- <a id="arg---pypi-keyring-provider" href="#arg---pypi-keyring-provider">`--pypi-keyring-provider <PYPI_KEYRING_PROVIDER>`</a>
+:  Specifies whether to use the keyring to look up credentials for PyPI
+
+- <a id="arg---run-post-link-scripts" href="#arg---run-post-link-scripts">`--run-post-link-scripts`</a>
+:  Run post-link scripts (insecure)
+- <a id="arg---no-symbolic-links" href="#arg---no-symbolic-links">`--no-symbolic-links`</a>
+:  Disallow symbolic links during package installation
+
+- <a id="arg---no-hard-links" href="#arg---no-hard-links">`--no-hard-links`</a>
+:  Disallow hard links during package installation
+
+- <a id="arg---no-ref-links" href="#arg---no-ref-links">`--no-ref-links`</a>
+:  Disallow ref links (copy-on-write) during package installation
+
+- <a id="arg---tls-no-verify" href="#arg---tls-no-verify">`--tls-no-verify`</a>
+:  Do not verify the TLS certificate of the server
+- <a id="arg---offline" href="#arg---offline">`--offline=<OFFLINE>`</a>
+:  Run without network access, using only cached data. Commands fail if data is missing from the cache. Pass `--offline=false` to override an `offline` setting from the configuration
+
+- <a id="arg---tls-root-certs" href="#arg---tls-root-certs">`--tls-root-certs <TLS_ROOT_CERTS>`</a>
+:  Which TLS root certificates to use: 'webpki' (bundled Mozilla roots) or 'system' (system store)
+
+- <a id="arg---use-environment-activation-cache" href="#arg---use-environment-activation-cache">`--use-environment-activation-cache`</a>
+:  Use environment activation cache (experimental)
+
+## Git Options
+- <a id="arg---git" href="#arg---git">`--git (-g) <GIT>`</a>
+:  The git url to use when adding a git dependency
+- <a id="arg---branch" href="#arg---branch">`--branch <BRANCH>`</a>
+:  The git branch
+- <a id="arg---tag" href="#arg---tag">`--tag <TAG>`</a>
+:  The git tag
+- <a id="arg---rev" href="#arg---rev">`--rev <REV>`</a>
+:  The git revision
+- <a id="arg---subdirectory" href="#arg---subdirectory">`--subdirectory <SUBDIRECTORY>`</a>
+:  The subdirectory of the git repository to use
+
+## Update Options
+- <a id="arg---no-install" href="#arg---no-install">`--no-install`</a>
+:  Don't modify the environment, only modify the lock file
+
+- <a id="arg---frozen" href="#arg---frozen">`--frozen`</a>
+:  Install the environment as defined in the lock file, doesn't update lock file if it isn't up-to-date with the manifest file
+
+- <a id="arg---locked" href="#arg---locked">`--locked`</a>
+:  Check if lock file is up-to-date before installing the environment, aborts when lock file isn't up-to-date with the manifest file
+
+## Global Options
+- <a id="arg---manifest-path" href="#arg---manifest-path">`--manifest-path (-m) <MANIFEST_PATH>`</a>
+:  The path to `pixi.toml`, `pyproject.toml`, or the workspace directory
+- <a id="arg---workspace" href="#arg---workspace">`--workspace (-w) <WORKSPACE>`</a>
+:  Name of the workspace
+- <a id="arg---script" href="#arg---script">`--script (-s) <SCRIPT>`</a>
+:  The path to a script with an embedded manifest: a Python script containing PEP 723 metadata, or a file of any language containing a `/// conda-script` block
+
+## Description
+Removes dependencies from the workspace.
+
+If the workspace manifest is a `pyproject.toml`, removing a pypi dependency with the `--pypi` flag will remove it from either
+
+- the native pyproject `project.dependencies` array or, if a feature is specified, the native `project.optional-dependencies` table
+
+- pixi `pypi-dependencies` tables of the default feature or, if a feature is specified, a named feature
+
+## Examples
+
+```shell
+pixi remove numpy
+pixi remove numpy pandas pytorch
+pixi remove --manifest-path ~/myworkspace/pixi.toml numpy
+pixi remove --host python
+pixi remove --build cmake
+pixi remove --pypi requests
+pixi remove --platform osx-64 --build clang
+pixi remove --feature featurex clang
+pixi remove --environment dev clang
+pixi remove --feature featurex --platform osx-64 clang
+pixi remove --feature featurex --platform osx-64 --build clang
+pixi remove --no-install numpy
+```

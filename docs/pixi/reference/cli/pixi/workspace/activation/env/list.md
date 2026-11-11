@@ -1,0 +1,16 @@
+# [pixi](../../../index.md) [workspace](../../index.md) [activation](../index.md) [env](index.md) list
+
+List the activation environment variables in the manifest
+
+## Usage
+```
+pixi workspace activation env list [OPTIONS]
+```
+
+## Options
+- <a id="arg---feature" href="#arg---feature">`--feature (-f) <FEATURE>`</a>
+:  Only show the activation of this feature
+- <a id="arg---environment" href="#arg---environment">`--environment (-e) <ENVIRONMENT>`</a>
+:  Only show the activation of features included in this environment
+- <a id="arg---target" href="#arg---target">`--target (-t) <TARGET>`</a>
+:  Only show the activation of this target selector, e.g. `linux-64`, `unix` or a glob like `cuda-*`

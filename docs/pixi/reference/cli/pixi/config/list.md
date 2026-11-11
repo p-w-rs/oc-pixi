@@ -1,0 +1,50 @@
+# [pixi](../index.md) [config](index.md) list
+
+List configuration values
+
+## Usage
+```
+pixi config list [OPTIONS] [KEY]
+```
+
+## Arguments
+- <a id="arg-KEY" href="#arg-KEY">`<KEY>`</a>
+:  Configuration key to show (all if not provided)
+
+## Options
+- <a id="arg---json" href="#arg---json">`--json`</a>
+:  Output in JSON format
+
+## Config Options
+- <a id="arg---no-config" href="#arg---no-config">`--no-config`</a>
+:  Don't read system or user-level configuration files. Project-local `<project>/.pixi/config.toml` is still loaded
+
+- <a id="arg---config-file" href="#arg---config-file">`--config-file <PATH>`</a>
+:  Load configuration from this file instead of searching system and user-level paths. Project-local `<project>/.pixi/config.toml` is still merged on top
+
+- <a id="arg---local" href="#arg---local">`--local (-l)`</a>
+:  Operation on project-local configuration
+- <a id="arg---global" href="#arg---global">`--global (-g)`</a>
+:  Operation on global configuration
+- <a id="arg---system" href="#arg---system">`--system (-s)`</a>
+:  Operation on system configuration
+
+## Global Options
+- <a id="arg---manifest-path" href="#arg---manifest-path">`--manifest-path (-m) <MANIFEST_PATH>`</a>
+:  The path to `pixi.toml`, `pyproject.toml`, or the workspace directory
+- <a id="arg---workspace" href="#arg---workspace">`--workspace (-w) <WORKSPACE>`</a>
+:  Name of the workspace
+
+## Description
+List configuration values
+
+Example: `pixi config list default-channels`
+
+## Examples
+
+```shell
+pixi config list default-channels
+pixi config list --json
+pixi config list --system
+pixi config list -g
+```
